@@ -163,4 +163,4 @@ cython_debug/
 
 Lib/
 Scripts/
-.cfg/
+pyvenv.cfg
