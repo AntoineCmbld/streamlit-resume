@@ -24,18 +24,12 @@ import numpy as np
 url = "https://www.data.gouv.fr/fr/datasets/r/78348f03-a11c-4a6b-b8db-2acf4fee81b1"
 dtypes = {
     'Date mutation': 'str',
-    'Nature mutation': 'str',
     'Valeur fonciere': 'float',
-    'Code postal': 'str',
-    'Commune': 'str',
     'Code departement': 'str',
-    'Code commune': 'str',
     'Type local': 'str',
     'Surface reelle bati': 'float',
     'Nombre pieces principales': 'Int64',
     'Surface terrain': 'float',
-    'Nature culture': 'str',
-    'Nature culture speciale': 'str'
 }
 # Create the DataFrame
 df = pd.DataFrame(list(dtypes.items()), columns=["Nom de la colonne", "Type de données"])
@@ -45,8 +39,6 @@ st.table(df)
 if (False):
     df = pd.read_csv(url, delimiter='|', decimal=",", na_values=[''], skiprows=lambda i: i>0 and (i%5!=0)) #version plus rapide pour machine learning
     #df = pd.read_csv(url, delimiter='|', decimal=",", na_values=[''])
-    df['Nature culture'] = df['Nature culture'].fillna("NaN") #Remplacer les valeurs nulles par un string pour encodage
-    df['Nature culture speciale'] = df['Nature culture speciale'].fillna("NaN")
     df['Type local'] = df['Type local'].fillna("NaN")
     #df['Surface reelle bati'] = df['Surface reelle bati'].fillna(df['Surface reelle bati'].mean())
     df['Nombre pieces principales'] = df['Nombre pieces principales'].fillna(df['Nombre pieces principales'].mean().round())
@@ -64,21 +56,27 @@ if (False):
 
     # Garder les colonnes pertinentes
     columns_to_keep = [
-        'Date mutation', 'Nature mutation', 'Valeur fonciere', 'Code postal',
-        'Code departement', 'Type local',
+        'Date mutation', 'Valeur fonciere', 'Code departement', 'Type local',
         'Surface reelle bati', 'Nombre pieces principales', 'Surface terrain',
     ]
     df = df[columns_to_keep]
 
 
-    df = df.dropna(subset=['Valeur fonciere', 'Code postal', 'Surface reelle bati', 'Surface terrain'])
+    df = df.dropna(subset=['Valeur fonciere', 'Surface reelle bati', 'Surface terrain'])
     # supression valeurs aberrantes
     df = df[df['Valeur fonciere']>10]
     df = df[df['Valeur fonciere']<5000000]
     df = df[df['Surface reelle bati']<100000]
     df = df[df['Surface terrain']<400000]
     df = df[df['Nombre pieces principales']<40]
+
+    #reset the indexes
+    df = df.reset_index(drop=True)
+
+    df = df[df['Surface reelle bati'] > 0]
+
     df.to_pickle("data.pkl")  # where to save it, usually as a .pkl
+
 
 df = pd.read_pickle("data.pkl")
 
@@ -125,12 +123,12 @@ On retiendra que:
 """## Geomap"""
 
 # Feature engineering
-df = df[df['Surface reelle bati'] > 0]
 
 df['Prix_m2'] = df['Valeur fonciere'] / df['Surface reelle bati']
 
 # Filtrer les valeurs aberrantes
 df = df[df['Prix_m2'] < 30000]
+df = df.reset_index(drop=True)
 
 prix_m2_par_departement = df.groupby('Code departement')['Prix_m2'].mean().reset_index()
 prix_m2_par_departement.columns = ['code', 'Prix_m2']
@@ -142,7 +140,28 @@ prix_m2_par_departement['code'] = prix_m2_par_departement['code'].str.zfill(2)
 prix_m2_par_departement['Prix_m2_format'] = prix_m2_par_departement['Prix_m2'].apply(lambda x: f"{x:,.2f} €".replace(',', ' ').replace('.', ','))
 
 
-st.image("image.png")
+# Geomap
+import plotly.express as px
+import geopandas as gpd
+geojson_url = 'https://france-geojson.gregoiredavid.fr/repo/departements.geojson'
+departements_geojson = gpd.read_file(geojson_url)
+# Créer la carte
+fig = px.choropleth_mapbox(
+    prix_m2_par_departement,
+    geojson=departements_geojson,
+    featureidkey="properties.code",
+    locations='code',
+    color='Prix_m2',
+    color_continuous_scale="Viridis",
+    mapbox_style="carto-positron",
+    zoom=5,
+    center={"lat": 46.603354, "lon": 1.888334},
+    opacity=0.6,
+    labels={'Prix_m2': 'Prix moyen par m²'},
+    title='Prix moyen par m² par département',
+    hover_data={'Prix_m2_format': True, 'Prix_m2': False}  # Utiliser la colonne formatée pour l'affichage
+)
+st.plotly_chart(fig)
 
 "On remarque que les prix moyens par département les plus élevés se situent à Paris et dans le Sud-Est de la France."
 
@@ -167,19 +186,26 @@ st.pyplot(fig)
 
 """## Matrice de corrélation"""
 
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-# Encoder les colonnes catégorielles en utilisant LabelEncoder
-label_encoders = {}
+# Encoder les colonnes code departement et type local en utilisant OneHotEncoder
+encoder = OneHotEncoder()
 df_encoded = df.copy()
-for col in df.select_dtypes(include=['object']).columns:
-    le = LabelEncoder()
-    df_encoded[col] = le.fit_transform(df[col])
-    label_encoders[col] = le
+for col in ['Code departement', 'Type local']:
+    encoded = encoder.fit_transform(df[[col]]).toarray()
+    encoded_cols = pd.DataFrame(encoded, columns=[f"{col}_{i}" for i in df[col].unique()])
+    df_encoded = pd.concat([df_encoded, encoded_cols], axis=1)
+    df_encoded = df_encoded.drop(col, axis=1)
+
+# Encoder les colonnes date mutation en utilisant LabelEncoder
+label_encoder = LabelEncoder()
+df_encoded['Date mutation'] = label_encoder.fit_transform(df_encoded['Date mutation'])
+    
+"""A partir d'ici, les variables code département et type local sont encodées en utilisant OneHotEncoder. Nous allons maintenant standardiser les données et afficher la matrice de corrélation."""
 
 #standardiser
 from sklearn.preprocessing import StandardScaler
@@ -188,7 +214,9 @@ scaler.set_output(transform='pandas')
 df_scaled = scaler.fit_transform(df_encoded)
 
 #Matrice de corrélation
-correlation_matrix = df_scaled.corr()
+#ne prendre que "Valeur fonciere", "Surface reelle bati", "Nombre pieces principales", "Surface terrain", "Date mutation"
+
+correlation_matrix = df_scaled[['Valeur fonciere', 'Surface reelle bati', 'Nombre pieces principales', 'Surface terrain', 'Date mutation']].corr()
 fig = plt.figure(figsize=(15, 10))
 sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f')
 plt.title('Matrice de Corrélation')
@@ -229,34 +257,36 @@ On ne trouve pas de coude net sur le graphique, essayons avec la méthode de la 
 """
 
 """### Méthode de la silhouette"""
+if (False):
+    #on garde que 50% des données pour la méthode de la silhouette
+    df_scaled_sample = df_scaled.sample(frac=0.5, random_state=42)
 
-#on garde que 50% des données pour la méthode de la silhouette
-df_scaled_sample = df_scaled.sample(frac=0.5, random_state=42)
+    from sklearn.metrics import silhouette_score
+    silhouette_scores = []
+    with st.spinner("Cela peut prendre quelques secondes..."):
+        for k in range(2, 10):
+            kmeans = KMeans(n_clusters=k, random_state=42)
+            kmeans.fit(df_scaled_sample)
+            silhouette_scores.append(silhouette_score(df_scaled_sample, kmeans.labels_))
 
-from sklearn.metrics import silhouette_score
-silhouette_scores = []
-with st.spinner("Cela peut prendre quelques secondes..."):
-    for k in range(2, 10):
-        kmeans = KMeans(n_clusters=k, random_state=42)
-        kmeans.fit(df_scaled_sample)
-        silhouette_scores.append(silhouette_score(df_scaled_sample, kmeans.labels_))
+    fig = plt.figure(figsize=(10, 6))
+    plt.plot(range(2, 10), silhouette_scores, marker='o')
+    plt.title("Silhouette Scores vs. Number of Clusters")
+    plt.xlabel("Number of Clusters")
+    plt.ylabel("Silhouette Score")
+    st.pyplot(fig)
 
-fig = plt.figure(figsize=(10, 6))
-plt.plot(range(2, 10), silhouette_scores, marker='o')
-plt.title("Silhouette Scores vs. Number of Clusters")
-plt.xlabel("Number of Clusters")
-plt.ylabel("Silhouette Score")
-st.pyplot(fig)
+#plus rapide avec image
+st.image("silhouette.png")
 
-"""On observe clairement un k idéal à 3 clusters"""
+"""On observe clairement un k idéal à 7 clusters"""
 
 
 """### KMeans"""
 
-
 #clustering
 from sklearn.cluster import KMeans
-kmeans = KMeans(n_clusters=3, random_state=42)
+kmeans = KMeans(n_clusters=7, random_state=42, init='k-means++')
 kmeans.fit(df_scaled)
 labels = kmeans.labels_
 
@@ -298,38 +328,28 @@ plt.show()
 st.pyplot(fig)
 
 fig = plt.figure(figsize=(10, 6))
-sns.boxplot(x='Code postal', data=df, hue=labels)
-plt.show()
-st.pyplot(fig)
-
-fig = plt.figure(figsize=(10, 6))
 sns.boxplot(x='Date mutation', data=df, hue=labels)
 plt.show()
 st.pyplot(fig)
 
 
 #print how many points in each cluster
-for i in range(4):
+for i in range(7):
     print(f"Cluster {i}: {np.sum(labels == i)} points")
     st.write(f"Cluster {i}: {np.sum(labels == i)} points")
 
+""""On observe d"""
 
-# In[ ]:
-
+#montre la répartition des clusters par rapport à code département sur un boxplot, avec un slider pour choisir le département
 
 """## Apprentissage supervisé"""
 
-
-# In[ ]:
 
 
 """### KNN"""
 
 
-# In[ ]:
-
-
-# Utilisation de KNN en utilisant le label code postal
+# Utilisation de KNN en utilisant le label 
 
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
@@ -353,6 +373,11 @@ y_pred = knn.predict(X_test)
 print("Accuracy:", accuracy_score(y_test, y_pred))
 print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
 print("Classification Report:\n", classification_report(y_test, y_pred))
+st.write("Accuracy:", accuracy_score(y_test, y_pred))
+st.write("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+st.write("Classification Report:\n", classification_report(y_test, y_pred))
+
+"""### Régression linéaire"""
 
 
 
