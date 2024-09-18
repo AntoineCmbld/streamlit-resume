@@ -9,7 +9,7 @@ import streamlit.components.v1 as components
 '''
 
 """
-Ce projet consiste à analyser et prédire les valeurs foncières en France.\n
+Ce projet consiste à analyser et prédire les valeurs foncières en France métropolitaine.\n
 Nous utiliserons un dataset contenant des informations sur les transactions immobilières en France en 2023. Nous allons commencer par charger et explorer les données, puis nous allons entraîner des modèles de machine learning pour prédire les valeurs foncières.\n
 Pour gagner du temps, seulement 10% des données seront chargées.\n
 Source des données: """ 
@@ -154,7 +154,7 @@ fig = px.choropleth_mapbox(
     color='Prix_m2',
     color_continuous_scale="Viridis",
     mapbox_style="carto-positron",
-    zoom=5,
+    zoom=4,
     center={"lat": 46.603354, "lon": 1.888334},
     opacity=0.6,
     labels={'Prix_m2': 'Prix moyen par m²'},
@@ -194,6 +194,7 @@ import matplotlib.pyplot as plt
 
 # Encoder les colonnes code departement et type local en utilisant OneHotEncoder
 encoder = OneHotEncoder()
+df.drop('Prix_m2', axis=1, inplace=True)
 df_encoded = df.copy()
 for col in ['Code departement', 'Type local']:
     encoded = encoder.fit_transform(df[[col]]).toarray()
@@ -231,7 +232,6 @@ En effet, sur l'échelle de la France ce facteur n'est pas très élevé. A plus
 """## Apprentissage non supervisé"""
 
 
-
 """### Méthode du coude"""
 
 
@@ -241,7 +241,7 @@ from sklearn.cluster import KMeans
 sse = []
 for k in range(1, 11):
     kmeans = KMeans(n_clusters=k, random_state=42)
-    kmeans.fit(df_scaled)
+    kmeans.fit(df_scaled[['Valeur fonciere', 'Surface reelle bati', 'Nombre pieces principales', 'Surface terrain', 'Date mutation']])
     sse.append(kmeans.inertia_)
 
 fig = plt.figure(figsize=(10, 6))
@@ -261,6 +261,9 @@ if (False):
     #on garde que 50% des données pour la méthode de la silhouette
     df_scaled_sample = df_scaled.sample(frac=0.5, random_state=42)
 
+    #on ne prend pas les colonnes encodées
+    df_scaled_sample = df_scaled_sample[['Valeur fonciere', 'Surface reelle bati', 'Nombre pieces principales', 'Surface terrain', 'Date mutation']]
+
     from sklearn.metrics import silhouette_score
     silhouette_scores = []
     with st.spinner("Cela peut prendre quelques secondes..."):
@@ -279,15 +282,14 @@ if (False):
 #plus rapide avec image
 st.image("silhouette.png")
 
-"""On observe clairement un k idéal à 7 clusters"""
-
+"""On observe clairement un k idéal à 5 clusters"""
 
 """### KMeans"""
 
 #clustering
 from sklearn.cluster import KMeans
-kmeans = KMeans(n_clusters=7, random_state=42, init='k-means++')
-kmeans.fit(df_scaled)
+kmeans = KMeans(n_clusters=5, random_state=42, init='k-means++')
+kmeans.fit(df_scaled[['Valeur fonciere', 'Surface reelle bati', 'Nombre pieces principales', 'Surface terrain', 'Date mutation']])
 labels = kmeans.labels_
 
 #plot valeur fonciere against sufrace bati
@@ -334,91 +336,23 @@ st.pyplot(fig)
 
 
 #print how many points in each cluster
-for i in range(7):
+for i in range(5):
     print(f"Cluster {i}: {np.sum(labels == i)} points")
     st.write(f"Cluster {i}: {np.sum(labels == i)} points")
 
-""""On observe d"""
+"""On remarque plusieurs tendances intéressantes dans les clusters:\n
+-cluster 0: semble s'être formé autour de la date de mutation (début d'année). Il comprend environ 40% des données du dataset\n
+-cluster 2: comprend très peu de points mais uniquement des locaux commerciaux et industriels avec une très grande surface\n
+-cluster 3: contient les biens à forte valeur foncière (de tous types)\n
 
-#montre la répartition des clusters par rapport à code département sur un boxplot, avec un slider pour choisir le département
+Le score de silhouette assez faible ne permet pas une analyse plus approfondie avec kmeans."""
 
 """## Apprentissage supervisé"""
 
+"""### Régression random forest"""
 
-
-"""### KNN"""
-
-
-# Utilisation de KNN en utilisant le label 
-
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-
-# Sélection des features et de la cible pour le KNN
-X = df_scaled.drop('Code departement', axis=1)
-y = df_encoded['Code departement']
-
-# Division des données en ensembles d'apprentissage et de test
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Initialisation et entrainement du modèle KNN
-knn = KNeighborsClassifier(n_neighbors=5)
-knn.fit(X_train, y_train)
-
-# Prédictions
-y_pred = knn.predict(X_test)
-
-# Évaluation du modèle
-print("Accuracy:", accuracy_score(y_test, y_pred))
-print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
-print("Classification Report:\n", classification_report(y_test, y_pred))
-st.write("Accuracy:", accuracy_score(y_test, y_pred))
-st.write("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
-st.write("Classification Report:\n", classification_report(y_test, y_pred))
-
-"""### Régression linéaire"""
-
-
-
-
-# In[ ]:
-
-
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-
-# Sélection des features et de la cible pour le KNN
-X = df_scaled.drop('Type local', axis=1)
-y = df_encoded['Type local'].astype(int)  # Conversion en entier si nécessaire
-
-# Division des données en ensembles d'apprentissage et de test
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Initialisation et entrainement du modèle KNN
-knn = KNeighborsClassifier(n_neighbors=5)
-knn.fit(X_train, y_train)
-
-# Prédictions
-y_pred = knn.predict(X_test)
-
-# Évaluation du modèle
-print("Accuracy:", accuracy_score(y_test, y_pred))
-print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
-print("Classification Report:\n", classification_report(y_test, y_pred))
-
-
-# In[ ]:
-
-
-"""### Régression linéaire"""
-
-
-# In[ ]:
-
-
-# Utilisation d'une régression linéaire
+"""On cherche ici à prédire la valeur foncière d'un bien en fonction des autres variables du dataset. On utilisera une régression random forest pour cela."""
+# Utilisation d'une régression random forest
 
 import pandas as pd
 import numpy as np
@@ -430,8 +364,11 @@ from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 
 # Sélection des features et de la cible pour la régression linéaire
-X = df_scaled.drop('Valeur fonciere', axis=1)
+X = df_encoded.drop('Valeur fonciere', axis=1)
 y = df_encoded['Valeur fonciere']
+
+#shuffle df_encoded
+df_encoded = df_encoded.sample(frac=1, random_state=42)
 
 # Division des données en ensembles d'apprentissage et de test
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -439,12 +376,15 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # Initialisation et entrainement du modèle de régression linéaire
 from sklearn.ensemble import RandomForestRegressor
 
-rf = RandomForestRegressor(n_estimators=100, random_state=42)
-rf.fit(X_train, y_train)
-y_pred_rf = rf.predict(X_test)
+with st.spinner("Cela peut prendre quelques secondes..."):
+    rf = RandomForestRegressor(n_estimators=100, random_state=1)
+    rf.fit(X_train, y_train)
+    y_pred_rf = rf.predict(X_test)
 
 print("Random Forest Mean Squared Error:", mean_squared_error(y_test, y_pred_rf))
 print("Random Forest R^2 Score:", r2_score(y_test, y_pred_rf))
+st.write("Random Forest Mean Squared Error:", mean_squared_error(y_test, y_pred_rf))
+st.write("Random Forest R^2 Score:", r2_score(y_test, y_pred_rf))
 
 plt.figure(figsize=(10, 6))
 plt.scatter(y_test, y_pred_rf, alpha=0.3)
@@ -453,4 +393,13 @@ plt.xlabel('Valeur Fonciere Réelle')
 plt.ylabel('Valeur Fonciere Prédite')
 plt.title('Random Forest : Valeur Fonciere Réelle vs Prédite')
 plt.show()
+st.pyplot(plt)
 
+#pickle the model
+import pickle
+filename = 'rf.pkl'
+pickle.dump(rf, open(filename, 'wb'))
+
+"""La prédiction n'est pas très fiable, plus de données sont nécessaire pour améliorer la précision, comme la position géographique du bien, l'année de construction, etc."""
+
+"""Vous pouvez tout de même essayer de prédire la valeur foncière d'un bien sur la page Land value - Prediction"""
