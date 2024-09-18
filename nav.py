@@ -14,5 +14,5 @@ nav =st.navigation({"": [st.Page('home.py', title='Home', icon=':material/home:'
 with st.sidebar:
         components.iframe('https://lottie.host/embed/11baf9d0-2f09-4940-8fc4-8545070fae47/PlZnidWzAu.json')
         #navbar
-        st.write("--------/!\\\-------Work in progress-------/!\\\--------")
+        st.write(r'`----/!\----Work in progress----/!\----`')
 nav.run()

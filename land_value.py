@@ -230,7 +230,7 @@ On ne trouve pas de coude net sur le graphique, essayons avec la méthode de la 
 
 """### Méthode de la silhouette"""
 
-#on garde que 10% des données pour la méthode de la silhouette
+#on garde que 50% des données pour la méthode de la silhouette
 df_scaled_sample = df_scaled.sample(frac=0.5, random_state=42)
 
 from sklearn.metrics import silhouette_score
@@ -248,7 +248,7 @@ plt.xlabel("Number of Clusters")
 plt.ylabel("Silhouette Score")
 st.pyplot(fig)
 
-"""On observe clairement un k idéal à 2 clusters"""
+"""On observe clairement un k idéal à 3 clusters"""
 
 
 """### KMeans"""
@@ -256,7 +256,7 @@ st.pyplot(fig)
 
 #clustering
 from sklearn.cluster import KMeans
-kmeans = KMeans(n_clusters=2, random_state=42)
+kmeans = KMeans(n_clusters=3, random_state=42)
 kmeans.fit(df_scaled)
 labels = kmeans.labels_
 
