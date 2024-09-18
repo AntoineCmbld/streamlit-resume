@@ -19,7 +19,6 @@ st.page_link("https://www.data.gouv.fr/fr/datasets/r/78348f03-a11c-4a6b-b8db-2ac
 
 import pandas as pd
 import numpy as np
-import random
 
 # Load the dataset
 url = "https://www.data.gouv.fr/fr/datasets/r/78348f03-a11c-4a6b-b8db-2acf4fee81b1"
@@ -124,10 +123,6 @@ On retiendra que:
 """
 
 """## Geomap"""
-
-import geopandas as gpd
-import plotly.express as px
-import time
 
 # Feature engineering
 df = df[df['Surface reelle bati'] > 0]
