@@ -280,7 +280,7 @@ if (False):
     st.pyplot(fig)
 
 #plus rapide avec image
-st.image("silhouette.png")
+st.image("img/silhouette.png")
 
 """On observe clairement un k idéal à 5 clusters"""
 
@@ -376,29 +376,33 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # Initialisation et entrainement du modèle de régression linéaire
 from sklearn.ensemble import RandomForestRegressor
 
-with st.spinner("Cela peut prendre quelques secondes..."):
-    rf = RandomForestRegressor(n_estimators=100, random_state=1)
-    rf.fit(X_train, y_train)
-    y_pred_rf = rf.predict(X_test)
+if (False):
+    with st.spinner("Cela peut prendre quelques secondes..."):
+        rf = RandomForestRegressor(n_estimators=100, random_state=1)
+        rf.fit(X_train, y_train)
+        y_pred_rf = rf.predict(X_test)
 
-print("Random Forest Mean Squared Error:", mean_squared_error(y_test, y_pred_rf))
-print("Random Forest R^2 Score:", r2_score(y_test, y_pred_rf))
-st.write("Random Forest Mean Squared Error:", mean_squared_error(y_test, y_pred_rf))
-st.write("Random Forest R^2 Score:", r2_score(y_test, y_pred_rf))
+    print("Random Forest Mean Squared Error:", mean_squared_error(y_test, y_pred_rf))
+    print("Random Forest R^2 Score:", r2_score(y_test, y_pred_rf))
+    st.write("Random Forest Mean Squared Error:", mean_squared_error(y_test, y_pred_rf))
+    st.write("Random Forest R^2 Score:", r2_score(y_test, y_pred_rf))
 
-plt.figure(figsize=(10, 6))
-plt.scatter(y_test, y_pred_rf, alpha=0.3)
-plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], color='red', lw=2)
-plt.xlabel('Valeur Fonciere Réelle')
-plt.ylabel('Valeur Fonciere Prédite')
-plt.title('Random Forest : Valeur Fonciere Réelle vs Prédite')
-plt.show()
-st.pyplot(plt)
+    plt.figure(figsize=(10, 6))
+    plt.scatter(y_test, y_pred_rf, alpha=0.3)
+    plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], color='red', lw=2)
+    plt.xlabel('Valeur Fonciere Réelle')
+    plt.ylabel('Valeur Fonciere Prédite')
+    plt.title('Random Forest : Valeur Fonciere Réelle vs Prédite')
+    plt.show()
+    st.pyplot(plt)
 
-#pickle the model
-import pickle
-filename = 'rf.pkl'
-pickle.dump(rf, open(filename, 'wb'))
+    #pickle the model
+    import pickle
+    filename = 'rf.pkl'
+    pickle.dump(rf, open(filename, 'wb'))
+
+st.image("img/rf.png")
+
 
 """La prédiction n'est pas très fiable, plus de données sont nécessaire pour améliorer la précision, comme la position géographique du bien, l'année de construction, etc."""
 
