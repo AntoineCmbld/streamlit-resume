@@ -143,8 +143,7 @@ prix_m2_par_departement['Prix_m2_format'] = prix_m2_par_departement['Prix_m2'].a
 # Geomap
 import plotly.express as px
 import geopandas as gpd
-geojson_url = 'https://france-geojson.gregoiredavid.fr/repo/departements.geojson'
-departements_geojson = gpd.read_file(geojson_url)
+departements_geojson = gpd.read_file("departements.geojson")
 # Créer la carte
 fig = px.choropleth_mapbox(
     prix_m2_par_departement,
@@ -196,15 +195,23 @@ import matplotlib.pyplot as plt
 encoder = OneHotEncoder()
 df.drop('Prix_m2', axis=1, inplace=True)
 df_encoded = df.copy()
-for col in ['Code departement', 'Type local']:
-    encoded = encoder.fit_transform(df[[col]]).toarray()
-    encoded_cols = pd.DataFrame(encoded, columns=[f"{col}_{i}" for i in df[col].unique()])
-    df_encoded = pd.concat([df_encoded, encoded_cols], axis=1)
-    df_encoded = df_encoded.drop(col, axis=1)
 
-# Encoder les colonnes date mutation en utilisant LabelEncoder
-label_encoder = LabelEncoder()
-df_encoded['Date mutation'] = label_encoder.fit_transform(df_encoded['Date mutation'])
+encoded = encoder.fit_transform(pd.DataFrame(df['Code departement'])).toarray()
+codes = encoder.get_feature_names_out()
+encoded_cols = pd.DataFrame(encoded, columns=codes)
+df_encoded = pd.concat([df_encoded, encoded_cols], axis=1)
+df_encoded = df_encoded.drop("Code departement", axis=1)
+
+encoded = encoder.fit_transform(pd.DataFrame(df['Type local'])).toarray()
+local = encoder.get_feature_names_out()
+encoded_cols = pd.DataFrame(encoded, columns=local)
+df_encoded = pd.concat([df_encoded, encoded_cols], axis=1)
+df_encoded = df_encoded.drop("Type local", axis=1)
+
+st.write(df_encoded.columns)
+
+st.write(df_encoded.head()) 
+# Encoder les colonnes date mutation 
     
 """A partir d'ici, les variables code département et type local sont encodées en utilisant OneHotEncoder. Nous allons maintenant standardiser les données et afficher la matrice de corrélation."""
 
@@ -341,9 +348,9 @@ for i in range(5):
     st.write(f"Cluster {i}: {np.sum(labels == i)} points")
 
 """On remarque plusieurs tendances intéressantes dans les clusters:\n
--cluster 0: semble s'être formé autour de la date de mutation (début d'année). Il comprend environ 40% des données du dataset\n
--cluster 2: comprend très peu de points mais uniquement des locaux commerciaux et industriels avec une très grande surface\n
--cluster 3: contient les biens à forte valeur foncière (de tous types)\n
+- cluster 0: semble s'être formé autour de la date de mutation (début d'année). Il comprend environ 40% des données du dataset\n
+- cluster 2: comprend très peu de points mais uniquement des locaux commerciaux et industriels avec une très grande surface\n
+- cluster 3: contient les biens à forte valeur foncière (de tous types)\n
 
 Le score de silhouette assez faible ne permet pas une analyse plus approfondie avec kmeans."""
 
@@ -362,7 +369,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
-
+st.write(df_encoded.columns)
 # Sélection des features et de la cible pour la régression linéaire
 X = df_encoded.drop('Valeur fonciere', axis=1)
 y = df_encoded['Valeur fonciere']
