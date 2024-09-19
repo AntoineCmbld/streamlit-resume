@@ -75,10 +75,10 @@ if (False):
 
     df = df[df['Surface reelle bati'] > 0]
 
-    df.to_pickle("data.pkl")  # where to save it, usually as a .pkl
+    df.to_pickle("datasets/data.pkl")  # where to save it, usually as a .pkl
 
 
-df = pd.read_pickle("data.pkl")
+df = pd.read_pickle("datasets/data.pkl")
 
 """## Partie Analyse Exploratoire Des Données"""
 

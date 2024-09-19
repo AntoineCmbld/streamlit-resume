@@ -3,7 +3,7 @@
 import pickle
 import streamlit as st
 import pandas as pd
-from land_value import codes, local, col_rf, X_train
+from land_value import codes, local
 
 dtypes = {
     'Date mutation': 'str',
@@ -38,8 +38,6 @@ oh_type[f"Type local_{type_local}"] = 1
 features = pd.DataFrame([[date, surface_reelle_bati, nombre_pieces_principales, surface_terrain]], columns=['Date mutation', 'Surface reelle bati', 'Nombre pieces principales', 'Surface terrain'])
 features = pd.concat([features, oh_code], axis=1)
 features = pd.concat([features, oh_type], axis=1)   
-
-features.align(X_train, axis=1, join="outer")
 
 model = pickle.load(open('rf.pkl', 'rb'))
 
