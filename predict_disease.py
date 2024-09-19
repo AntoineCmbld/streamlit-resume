@@ -7,7 +7,6 @@ from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import RandomForestClassifier
 
-
 # Reading the train.csv by removing the
 # last column since it's an empty column
 DATA_PATH = "datasets/Training.csv"
@@ -24,13 +23,25 @@ y = data.iloc[:, -1]
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=24)
 
-# Training the models on whole data
-final_svm_model = SVC()
-final_nb_model = GaussianNB()
-final_rf_model = RandomForestClassifier(random_state=18)
-final_svm_model.fit(X, y)
-final_nb_model.fit(X, y)
-final_rf_model.fit(X, y)
+import pickle
+
+if (False):
+    # Training the models on whole data
+    final_svm_model = SVC()
+    final_nb_model = GaussianNB()
+    final_rf_model = RandomForestClassifier(random_state=18)
+    final_svm_model.fit(X, y)
+    final_nb_model.fit(X, y)
+    final_rf_model.fit(X, y)
+
+    #pickle
+    pickle.dump(final_svm_model, open('disease_svm.pkl', 'wb'))
+    pickle.dump(final_nb_model, open('disease_nb.pkl', 'wb'))
+    pickle.dump(final_rf_model, open('disease_rf.pkl', 'wb'))
+
+final_svm_model = pickle.load(open('disease_svm.pkl', 'rb'))
+final_nb_model = pickle.load(open('disease_nb.pkl', 'rb'))
+final_rf_model = pickle.load(open('disease_rf.pkl', 'rb'))
 
 symptoms = X.columns.values
 
@@ -86,15 +97,14 @@ import streamlit as st
 
 st.title("Disease Prediction")
 st.write("This app predicts the disease based on the symptoms")
-st.write("Please do not select 2 symptoms at once, wait for the page to refresh before selecting another")
+st.write("Check the code behind this here: [Github](%s)" % "https://github.com/AntoineCmbld/disease_detection_ml")
 
-selection = st.multiselect("Select the symptoms", symptom_index)
+with st.spinner("Predicting..."):
+    selection = st.multiselect("Select the symptoms", symptom_index)
 
-print(selection)
-
-if len(selection) == 0:
-    st.write("Please select the symptoms")
-else:
-    st.write("### You are likely to have: ")
-    with st.container(border=True):
-        st.write(predictDisease(selection)["final_prediction"])
+    if len(selection) == 0:
+        st.write("Please select the symptoms")
+    else:
+        st.write("### You are likely to have: ")
+        with st.container(border=True):
+            st.write(predictDisease(selection)["final_prediction"])
