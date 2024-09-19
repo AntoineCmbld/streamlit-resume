@@ -42,6 +42,11 @@ features = pd.DataFrame([[date, surface_reelle_bati, nombre_pieces_principales, 
 features = pd.concat([features, oh_code], axis=1)
 features = pd.concat([features, oh_type], axis=1)   
 
+import gdown
+
+output = 'rf.pkl'
+gdown.download("https://drive.google.com/file/d/164ar9n3a5prmfzAyWzBWxrwGCEq6Sgoz/view?usp=sharing", output, quiet=False)
+
 model = pickle.load(open('rf.pkl', 'rb'))
 
 prediction = model.predict(features)
