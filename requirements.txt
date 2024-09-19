@@ -6,5 +6,4 @@ plotly
 seaborn
 scikit-learn
 geopandas
-folium
 pickle

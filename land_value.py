@@ -2,7 +2,6 @@ import streamlit as st
 
 st.title("Prédiction de valeurs foncières")
 
-
 import streamlit.components.v1 as components
 '''
 ## Préparation des données
