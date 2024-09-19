@@ -164,3 +164,4 @@ cython_debug/
 Lib/
 Scripts/
 pyvenv.cfg
+.devcontainer/
