@@ -208,11 +208,7 @@ encoded_cols = pd.DataFrame(encoded, columns=local)
 df_encoded = pd.concat([df_encoded, encoded_cols], axis=1)
 df_encoded = df_encoded.drop("Type local", axis=1)
 
-st.write(df_encoded.columns)
 
-st.write(df_encoded.head()) 
-# Encoder les colonnes date mutation 
-    
 """A partir d'ici, les variables code département et type local sont encodées en utilisant OneHotEncoder. Nous allons maintenant standardiser les données et afficher la matrice de corrélation."""
 
 #standardiser
@@ -358,7 +354,8 @@ Le score de silhouette assez faible ne permet pas une analyse plus approfondie a
 
 """### Régression random forest"""
 
-"""On cherche ici à prédire la valeur foncière d'un bien en fonction des autres variables du dataset. On utilisera une régression random forest pour cela."""
+"""On cherche ici à prédire la valeur foncière d'un bien en fonction des autres variables du dataset. On utilisera une régression random forest pour cela.\n
+On testera la fiabilité de la prédiction en entrainant le modèle sur 80% des données et en le testant sur les 20% restants."""
 # Utilisation d'une régression random forest
 
 import pandas as pd
@@ -369,7 +366,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
-st.write(df_encoded.columns)
+
 # Sélection des features et de la cible pour la régression linéaire
 X = df_encoded.drop('Valeur fonciere', axis=1)
 y = df_encoded['Valeur fonciere']
@@ -379,11 +376,12 @@ df_encoded = df_encoded.sample(frac=1, random_state=42)
 
 # Division des données en ensembles d'apprentissage et de test
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+col_rf = X_train.columns
 
 # Initialisation et entrainement du modèle de régression linéaire
 from sklearn.ensemble import RandomForestRegressor
 
-if (False):
+if (True):
     with st.spinner("Cela peut prendre quelques secondes..."):
         rf = RandomForestRegressor(n_estimators=100, random_state=1)
         rf.fit(X_train, y_train)

@@ -8,7 +8,7 @@ nav =st.navigation({"": [st.Page('home.py', title='Home', icon=':material/home:'
                     st.Page('education.py', title='Education', icon=':material/school:')
                     ],
                     "Projects": [st.Page('land_value.py', title='Land value', icon=':material/developer_board:'),
-                    st.Page('land_value_predict.py', title='Land value - Prediction', icon=':material/developer_board:')
+                    st.Page('lv_predict.py', title='Land value - Prediction', icon=':material/developer_board:')
                     ]})
 
 with st.sidebar:
