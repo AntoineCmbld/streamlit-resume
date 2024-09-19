@@ -6,4 +6,3 @@ plotly
 seaborn
 scikit-learn
 geopandas
-gdown
