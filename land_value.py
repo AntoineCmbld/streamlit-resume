@@ -381,7 +381,7 @@ col_rf = X_train.columns
 # Initialisation et entrainement du modèle de régression linéaire
 from sklearn.ensemble import RandomForestRegressor
 
-if (True):
+if (False):
     with st.spinner("Cela peut prendre quelques secondes..."):
         rf = RandomForestRegressor(n_estimators=100, random_state=1)
         rf.fit(X_train, y_train)
