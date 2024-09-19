@@ -3,7 +3,10 @@
 import pickle
 import streamlit as st
 import pandas as pd
-from land_value import codes, local
+
+#import codes and local
+codes = pd.read_pickle('datasets/codes.pkl')
+local = pd.read_pickle('datasets/local.pkl')
 
 dtypes = {
     'Date mutation': 'str',

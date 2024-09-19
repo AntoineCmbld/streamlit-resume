@@ -202,12 +202,15 @@ encoded_cols = pd.DataFrame(encoded, columns=codes)
 df_encoded = pd.concat([df_encoded, encoded_cols], axis=1)
 df_encoded = df_encoded.drop("Code departement", axis=1)
 
+pd.to_pickle(codes, "datasets/codes.pkl")
+
 encoded = encoder.fit_transform(pd.DataFrame(df['Type local'])).toarray()
 local = encoder.get_feature_names_out()
 encoded_cols = pd.DataFrame(encoded, columns=local)
 df_encoded = pd.concat([df_encoded, encoded_cols], axis=1)
 df_encoded = df_encoded.drop("Type local", axis=1)
 
+pd.to_pickle(local, "datasets/local.pkl")
 
 """A partir d'ici, les variables code département et type local sont encodées en utilisant OneHotEncoder. Nous allons maintenant standardiser les données et afficher la matrice de corrélation."""
 
