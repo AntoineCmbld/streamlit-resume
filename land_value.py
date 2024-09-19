@@ -35,7 +35,7 @@ df = pd.DataFrame(list(dtypes.items()), columns=["Nom de la colonne", "Type de d
 
 st.table(df)
 
-if (False):
+if (True):
     df = pd.read_csv(url, delimiter='|', decimal=",", na_values=[''], skiprows=lambda i: i>0 and (i%5!=0)) #version plus rapide pour machine learning
     #df = pd.read_csv(url, delimiter='|', decimal=",", na_values=[''])
     df['Type local'] = df['Type local'].fillna("NaN")
@@ -383,7 +383,7 @@ col_rf = X_train.columns
 # Initialisation et entrainement du modèle de régression linéaire
 from sklearn.ensemble import RandomForestRegressor
 
-if (False):
+if (True):
     with st.spinner("Cela peut prendre quelques secondes..."):
         rf = RandomForestRegressor(n_estimators=100, random_state=1)
         rf.fit(X_train, y_train)
