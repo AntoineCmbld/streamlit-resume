@@ -80,6 +80,5 @@ def app():
         
 
         st.plotly_chart(fig)
-        
 
 app()
