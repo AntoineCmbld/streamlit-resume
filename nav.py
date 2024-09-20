@@ -7,7 +7,7 @@ nav =st.navigation({"": [st.Page('home.py', title='Home', icon=':material/home:'
                     st.Page('about.py', title='About', icon=':material/face:'),
                     st.Page('education.py', title='Education', icon=':material/school:')
                     ],
-                    "Projects": [st.Page('land_value.py', title='Land value', icon=':material/developer_board:'),
+                    "Projects": [st.Page('land_value.py', title='Land value - Analysis', icon=':material/developer_board:'),
                     st.Page('lv_predict.py', title='Land value - Prediction', icon=':material/developer_board:'),
                     st.Page('predict_disease.py', title='Disease prediction', icon=':material/developer_board:'),
                     ]})
