@@ -97,6 +97,7 @@ import streamlit as st
 
 st.title("Disease Prediction")
 st.write("This app predicts the disease based on the symptoms")
+st.write("It uses three models: Random Forest, Naive Bayes, and Support Vector Machine trained on a dataset similar to this one : [Kaggle](https://www.kaggle.com/kaushil268/disease-prediction-using-machine-learning)")
 st.write("Check the code behind this here: [Github](%s)" % "https://github.com/AntoineCmbld/disease_detection_ml")
 
 with st.spinner("Predicting..."):
