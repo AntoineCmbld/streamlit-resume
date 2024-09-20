@@ -116,7 +116,7 @@ st.pyplot(fig)
 On retiendra que:
  
 -La grande majorité des ventes ont un montant inférieur à 1M d'euros\n
--Les maisons et locaux coûtent en général moins cher que les appartements. Cela s'explique par leur positionnement: les appartements se situent surtout en ville, tandis que la majorité des maisons se situe en campagne et banlieue. Les locaux commerciaux et industriels coûtent aussi plus cher par leur nature et leur taille.
+-Les maisons coûtent en général moins cher que les appartements. Cela s'explique par leur positionnement: les appartements se situent surtout en ville, tandis que la majorité des maisons se situe en campagne et banlieue. Les locaux commerciaux et industriels coûtent aussi plus cher par leur nature et leur taille.
 """
 
 """## Geomap"""
