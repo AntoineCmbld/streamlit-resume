@@ -158,7 +158,7 @@ import sklearn.model_selection as skm
 import sklearn
 from sklearn.linear_model import LinearRegression
 
-X = df_encoded.drop(columns=['tip', 'smoker'])
+X = df_encoded.drop(columns=['tip', 'smoker', 'sex'])
 y = df_encoded['tip']
 X_train, X_test, y_train, y_test = skm.train_test_split(X, y, test_size=0.2, random_state=42)
 
@@ -184,6 +184,6 @@ plt.ylabel('Predicted value')
 st.pyplot(fig)
 
 #pickling the model
-if False:
+if True:
     import pickle
     pickle.dump(model, open('tip_predict.pkl', 'wb'))
