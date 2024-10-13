@@ -184,6 +184,6 @@ plt.ylabel('Predicted value')
 st.pyplot(fig)
 
 #pickling the model
-if True:
+if False:
     import pickle
     pickle.dump(model, open('tip_predict.pkl', 'wb'))
